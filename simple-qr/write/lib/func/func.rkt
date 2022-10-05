@@ -75,9 +75,9 @@
          ;
          ; second argument of string->number specifies the radix, so passing '2' means
          ; "treat this as a binary number"
-         (for/list ([from (in-inclusive-range 0 (- str-len 8) 8)]
-                    [to   (in-inclusive-range 8 str-len 8)])
-           (string->number (substring bit_str from to) 2))]))
+         (for/list ([from (in-inclusive-range 0 (- str-len 8) 8)])
+           (string->number (substring bit_str from (+ from 8))
+                           2))]))
 
 (define (split-decimal-list-on-contract num_list contract)
   (let ([group1_block_count (car (first contract))]
