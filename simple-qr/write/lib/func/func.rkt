@@ -57,12 +57,27 @@
                   (loop inner_loop_content))))))))
 
 (define (split-bit-string-to-decimal bit_str)
-  (reverse
-   (let loop ([loop_str bit_str]
-              [result_list '()])
-     (if (not (string=? loop_str ""))
-         (loop (substring loop_str 8) (cons (string->number (string-append "#b" (substring loop_str 0 8))) result_list))
-         result_list))))
+  (define str-len (string-length bit_str))
+  (when (or (zero? str-len) (not (zero? (modulo str-len 8))))
+    (raise-argument-error 'split-bit-string-to-decimal
+                          "non-empty string of 0 and 1 with length divisible by 8"
+                          bit_str))
+
+  (cond [(= 8 str-len) (list (string->number bit_str 2))]
+        [else
+         ; strings are indexed from 0, so a length 24 string has indices 0-23
+         ; substring takes indices to copy. start is INclusive, end is EXclusive
+         ;
+         ; indices and conversion arguments for a length 24 string:
+         ;first  byte:  0-7    (substring str 0 8), since end is non-inclusive
+         ;second byte:  8-15   (substring str 8 16)
+         ;third  byte:  16-23  (substring str 16 24)
+         ;
+         ; second argument of string->number specifies the radix, so passing '2' means
+         ; "treat this as a binary number"
+         (for/list ([from (in-inclusive-range 0 (- str-len 8) 8)]
+                    [to   (in-inclusive-range 8 str-len 8)])
+           (string->number (substring bit_str from to) 2))]))
 
 (define (split-decimal-list-on-contract num_list contract)
   (let ([group1_block_count (car (first contract))]
